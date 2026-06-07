@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Density & Synchrony</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; flex-direction: column; align-items: center; background: #fff; margin: 0; padding: 20px; }
+        #controls { display: flex; gap: 40px; background: #f8f9fa; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 10;}
+        .control-group { display: flex; flex-direction: column; align-items: center; }
+        label { font-weight: bold; margin-bottom: 8px; color: #333; font-size: 18px; }
+        input[type="range"] { width: 200px; cursor: pointer; }
+        svg { background: #fafafa; border-radius: 10px; margin-top: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .node { fill: #0078D4; stroke: #fff; stroke-width: 2px; }
+        .link { stroke: #aaa; stroke-opacity: 0.6;}
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <div class="control-group">
+            <label for="densitySlider">Global Density (Wiring)</label>
+            <input type="range" id="densitySlider" min="0" max="100" value="50">
+        </div>
+        <div class="control-group">
+            <label for="synchronySlider">Global Synchrony (Rhythm)</label>
+            <input type="range" id="synchronySlider" min="0" max="100" value="50">
+        </div>
+    </div>
+    <svg width="800" height="500"></svg>
+
+    <script>
+        const width = 800, height = 500, numNodes = 35;
+        const svg = d3.select("svg");
+        
+        // Generate nodes
+        const nodes = Array.from({length: numNodes}, (_, i) => ({ id: i, radius: 8 }));
+        
+        // Generate a random set of all possible links (edges)
+        let allLinks = [];
+        for (let i = 0; i < numNodes; i++) {
+            for (let j = i + 1; j < numNodes; j++) {
+                let weight = (j === i + 1) ? 100 : Math.random() * 100;
+                allLinks.push({ source: i, target: j, weight: weight });
+            }
+        }
+        allLinks.sort((a, b) => b.weight - a.weight);
+
+        let linkGroup = svg.append("g").attr("class", "links");
+        let nodeGroup = svg.append("g").attr("class", "nodes");
+
+        const simulation = d3.forceSimulation(nodes)
+            .force("charge", d3.forceManyBody().strength(-150))
+            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("collide", d3.forceCollide().radius(15));
+
+        function updateGraph() {
+            const density = document.getElementById("densitySlider").value;
+            const maxLinks = allLinks.length;
+            
+            // Density slider controls how many edges are drawn
+            const numActiveLinks = Math.max(numNodes - 1, Math.floor((density / 100) * maxLinks));
+            const activeLinks = allLinks.slice(0, numActiveLinks).map(d => ({...d}));
+
+            const links = linkGroup.selectAll("line").data(activeLinks);
+            links.exit().remove();
+            const linksEnter = links.enter().append("line")
+                .attr("class", "link")
+                .attr("stroke-width", d => density > 80 ? 1.5 : 1);
+            
+            const allLinkSelection = linksEnter.merge(links);
+
+            const nodeSelection = nodeGroup.selectAll("circle").data(nodes);
+            const nodeEnter = nodeSelection.enter().append("circle")
+                .attr("class", "node")
+                .attr("r", d => d.radius);
+            
+            const allNodeSelection = nodeEnter.merge(nodeSelection);
+
+            simulation.force("link", d3.forceLink(activeLinks).id(d => d.id).distance(60));
+            simulation.alpha(1).restart();
+
+            simulation.on("tick", () => {
+                allLinkSelection
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                allNodeSelection
+                    .attr("cx", d => Math.max(15, Math.min(width - 15, d.x)))
+                    .attr("cy", d => Math.max(15, Math.min(height - 15, d.y)));
+            });
+        }
+
+        // Animation for Synchrony
+        function pulse() {
+            const synchrony = document.getElementById("synchronySlider").value;
+            
+            // High synchrony = all nodes pulse together (0 delay)
+            // Low synchrony = nodes pulse randomly (up to 1500ms delay)
+            const maxDelay = 1500 - (synchrony * 15); 
+            
+            nodeGroup.selectAll("circle")
+                .transition()
+                .delay(d => Math.random() * maxDelay)
+                .duration(600)
+                .attr("r", 14) // Expand
+                .transition()
+                .duration(600)
+                .attr("r", 8)  // Shrink
+                .on("end", pulse);
+        }
+
+        document.getElementById("densitySlider").addEventListener("input", updateGraph);
+        
+        updateGraph();
+        pulse();
+    </script>
+</body>
+</html>
