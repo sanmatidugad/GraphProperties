@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presentation Safe Brain Network</title>
+    <title>Keyboard Safe Brain Network</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         body { 
             font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; 
             align-items: center; background: #fff; margin: 0; padding: 5px; overflow: hidden; 
-            user-select: none; /* Prevents text highlighting when clicking fast */
+            user-select: none;
         }
         #controls { 
             display: flex; flex-direction: column; gap: 8px; background: #f8f9fa; 
@@ -18,11 +18,11 @@
         .control-group { display: flex; flex-direction: column; align-items: center; }
         label { font-weight: bold; margin-bottom: 4px; color: #333; font-size: 14px; }
         
-        /* New Button Styles */
-        .btn-row { display: flex; align-items: center; gap: 15px; }
+        .btn-row { display: flex; align-items: center; gap: 10px; }
+        .hotkey-label { font-size: 11px; color: #666; font-weight: normal; }
         button { 
             background: #0078D4; color: white; border: none; border-radius: 4px; 
-            width: 45px; height: 35px; font-size: 20px; font-weight: bold; cursor: pointer;
+            width: 50px; height: 35px; font-size: 18px; font-weight: bold; cursor: pointer;
         }
         button:active { background: #005A9E; }
         .val-display { font-size: 14px; font-weight: bold; width: 40px; text-align: center; }
@@ -35,34 +35,25 @@
 <body>
     <div id="controls">
         <div class="control-group">
-            <label>Global Density (Wiring)</label>
+            <label>Global Density <span class="hotkey-label">(Keys 1 & 2)</span></label>
             <div class="btn-row">
-                <button onpointerdown="changeDensity(-20, event)">-</button>
+                <button onpointerdown="changeDensity(-20, event)">- [1]</button>
                 <span class="val-display" id="densityVal">50%</span>
-                <button onpointerdown="changeDensity(20, event)">+</button>
+                <button onpointerdown="changeDensity(20, event)">+ [2]</button>
             </div>
         </div>
         <div class="control-group">
-            <label>Global Synchrony (Rhythm)</label>
+            <label>Global Synchrony <span class="hotkey-label">(Keys 3 & 4)</span></label>
             <div class="btn-row">
-                <button onpointerdown="changeSync(-20, event)">-</button>
+                <button onpointerdown="changeSync(-20, event)">- [3]</button>
                 <span class="val-display" id="syncVal">50%</span>
-                <button onpointerdown="changeSync(20, event)">+</button>
+                <button onpointerdown="changeSync(20, event)">+ [4]</button>
             </div>
         </div>
     </div>
     <svg viewBox="0 0 450 380"></svg>
 
     <script>
-        // --- PPT Event Blocker ---
-        // This stops any click/touch inside the controls box from reaching PowerPoint
-        const controlsDiv = document.getElementById("controls");
-        ['pointerdown', 'mousedown', 'touchstart', 'click'].forEach(evt => {
-            controlsDiv.addEventListener(evt, e => {
-                e.stopPropagation();
-            });
-        });
-
         const width = 450, height = 380, numNodes = 30;
         const svg = d3.select("svg");
         
@@ -88,7 +79,6 @@
             .force("center", d3.forceCenter(width / 2, height / 2))
             .force("collide", d3.forceCollide().radius(12));
 
-        // Button Functions with Event Propagation blocked
         window.changeDensity = function(amount, event) {
             if(event) { event.preventDefault(); event.stopPropagation(); }
             currentDensity = Math.max(0, Math.min(100, currentDensity + amount));
@@ -101,6 +91,14 @@
             currentSync = Math.max(0, Math.min(100, currentSync + amount));
             document.getElementById("syncVal").innerText = currentSync + "%";
         };
+
+        // --- KEYBOARD LISTENERS ---
+        document.addEventListener('keydown', function(event) {
+            if (event.key === '1') changeDensity(-20, null);
+            if (event.key === '2') changeDensity(20, null);
+            if (event.key === '3') changeSync(-20, null);
+            if (event.key === '4') changeSync(20, null);
+        });
 
         function updateGraph() {
             const maxLinks = allLinks.length;
@@ -132,7 +130,6 @@
 
         function pulse() {
             const maxDelay = 1500 - (currentSync * 15); 
-            
             nodeGroup.selectAll("circle")
                 .transition()
                 .delay(d => Math.random() * maxDelay)
