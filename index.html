@@ -22,7 +22,7 @@
         .btn-row { display: flex; align-items: center; gap: 15px; }
         button { 
             background: #0078D4; color: white; border: none; border-radius: 4px; 
-            width: 35px; height: 30px; font-size: 18px; font-weight: bold; cursor: pointer;
+            width: 45px; height: 35px; font-size: 20px; font-weight: bold; cursor: pointer;
         }
         button:active { background: #005A9E; }
         .val-display { font-size: 14px; font-weight: bold; width: 40px; text-align: center; }
@@ -37,23 +37,32 @@
         <div class="control-group">
             <label>Global Density (Wiring)</label>
             <div class="btn-row">
-                <button onclick="changeDensity(-20)">-</button>
+                <button onpointerdown="changeDensity(-20, event)">-</button>
                 <span class="val-display" id="densityVal">50%</span>
-                <button onclick="changeDensity(20)">+</button>
+                <button onpointerdown="changeDensity(20, event)">+</button>
             </div>
         </div>
         <div class="control-group">
             <label>Global Synchrony (Rhythm)</label>
             <div class="btn-row">
-                <button onclick="changeSync(-20)">-</button>
+                <button onpointerdown="changeSync(-20, event)">-</button>
                 <span class="val-display" id="syncVal">50%</span>
-                <button onclick="changeSync(20)">+</button>
+                <button onpointerdown="changeSync(20, event)">+</button>
             </div>
         </div>
     </div>
     <svg viewBox="0 0 450 380"></svg>
 
     <script>
+        // --- PPT Event Blocker ---
+        // This stops any click/touch inside the controls box from reaching PowerPoint
+        const controlsDiv = document.getElementById("controls");
+        ['pointerdown', 'mousedown', 'touchstart', 'click'].forEach(evt => {
+            controlsDiv.addEventListener(evt, e => {
+                e.stopPropagation();
+            });
+        });
+
         const width = 450, height = 380, numNodes = 30;
         const svg = d3.select("svg");
         
@@ -79,17 +88,16 @@
             .force("center", d3.forceCenter(width / 2, height / 2))
             .force("collide", d3.forceCollide().radius(12));
 
-        // Button Functions
-        window.changeDensity = function(amount) {
-            // Stop PowerPoint from interpreting this as a slide advance
-            if(event) event.stopPropagation(); 
+        // Button Functions with Event Propagation blocked
+        window.changeDensity = function(amount, event) {
+            if(event) { event.preventDefault(); event.stopPropagation(); }
             currentDensity = Math.max(0, Math.min(100, currentDensity + amount));
             document.getElementById("densityVal").innerText = currentDensity + "%";
             updateGraph();
         };
 
-        window.changeSync = function(amount) {
-            if(event) event.stopPropagation();
+        window.changeSync = function(amount, event) {
+            if(event) { event.preventDefault(); event.stopPropagation(); }
             currentSync = Math.max(0, Math.min(100, currentSync + amount));
             document.getElementById("syncVal").innerText = currentSync + "%";
         };
