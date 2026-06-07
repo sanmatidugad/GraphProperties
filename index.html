@@ -3,42 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compact Brain Network</title>
+    <title>Presentation Safe Brain Network</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         body { 
-            font-family: 'Segoe UI', sans-serif; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            background: #fff; 
-            margin: 0; 
-            padding: 5px; 
-            overflow: hidden; /* Prevents scrollbars in small PPT windows */
+            font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; 
+            align-items: center; background: #fff; margin: 0; padding: 5px; overflow: hidden; 
+            user-select: none; /* Prevents text highlighting when clicking fast */
         }
         #controls { 
-            display: flex; 
-            flex-direction: column; /* Stacked vertically for narrow 5" width */
-            gap: 10px; 
-            background: #f8f9fa; 
-            padding: 10px; 
-            border-radius: 8px; 
-            width: 90%; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-            z-index: 10;
+            display: flex; flex-direction: column; gap: 8px; background: #f8f9fa; 
+            padding: 10px; border-radius: 8px; width: 90%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10;
         }
         .control-group { display: flex; flex-direction: column; align-items: center; }
-        label { font-weight: bold; margin-bottom: 2px; color: #333; font-size: 14px; }
-        input[type="range"] { width: 100%; cursor: pointer; }
+        label { font-weight: bold; margin-bottom: 4px; color: #333; font-size: 14px; }
         
-        /* Scaled SVG to fit 5x6 area */
-        svg { 
-            background: #fafafa; 
-            border-radius: 8px; 
-            margin-top: 10px; 
-            width: 450px; 
-            height: 380px; 
+        /* New Button Styles */
+        .btn-row { display: flex; align-items: center; gap: 15px; }
+        button { 
+            background: #0078D4; color: white; border: none; border-radius: 4px; 
+            width: 35px; height: 30px; font-size: 18px; font-weight: bold; cursor: pointer;
         }
+        button:active { background: #005A9E; }
+        .val-display { font-size: 14px; font-weight: bold; width: 40px; text-align: center; }
+        
+        svg { background: #fafafa; border-radius: 8px; margin-top: 10px; width: 450px; height: 380px; }
         .node { fill: #0078D4; stroke: #fff; stroke-width: 1.5px; }
         .link { stroke: #aaa; stroke-opacity: 0.5;}
     </style>
@@ -46,12 +35,20 @@
 <body>
     <div id="controls">
         <div class="control-group">
-            <label for="densitySlider">Global Density (Wiring)</label>
-            <input type="range" id="densitySlider" min="0" max="100" value="50">
+            <label>Global Density (Wiring)</label>
+            <div class="btn-row">
+                <button onclick="changeDensity(-20)">-</button>
+                <span class="val-display" id="densityVal">50%</span>
+                <button onclick="changeDensity(20)">+</button>
+            </div>
         </div>
         <div class="control-group">
-            <label for="synchronySlider">Global Synchrony (Rhythm)</label>
-            <input type="range" id="synchronySlider" min="0" max="100" value="50">
+            <label>Global Synchrony (Rhythm)</label>
+            <div class="btn-row">
+                <button onclick="changeSync(-20)">-</button>
+                <span class="val-display" id="syncVal">50%</span>
+                <button onclick="changeSync(20)">+</button>
+            </div>
         </div>
     </div>
     <svg viewBox="0 0 450 380"></svg>
@@ -60,6 +57,9 @@
         const width = 450, height = 380, numNodes = 30;
         const svg = d3.select("svg");
         
+        let currentDensity = 50;
+        let currentSync = 50;
+
         const nodes = Array.from({length: numNodes}, (_, i) => ({ id: i, radius: 6 }));
         
         let allLinks = [];
@@ -74,16 +74,29 @@
         let linkGroup = svg.append("g").attr("class", "links");
         let nodeGroup = svg.append("g").attr("class", "nodes");
 
-        // Adjusted forces for a smaller box
         const simulation = d3.forceSimulation(nodes)
             .force("charge", d3.forceManyBody().strength(-80)) 
             .force("center", d3.forceCenter(width / 2, height / 2))
             .force("collide", d3.forceCollide().radius(12));
 
+        // Button Functions
+        window.changeDensity = function(amount) {
+            // Stop PowerPoint from interpreting this as a slide advance
+            if(event) event.stopPropagation(); 
+            currentDensity = Math.max(0, Math.min(100, currentDensity + amount));
+            document.getElementById("densityVal").innerText = currentDensity + "%";
+            updateGraph();
+        };
+
+        window.changeSync = function(amount) {
+            if(event) event.stopPropagation();
+            currentSync = Math.max(0, Math.min(100, currentSync + amount));
+            document.getElementById("syncVal").innerText = currentSync + "%";
+        };
+
         function updateGraph() {
-            const density = document.getElementById("densitySlider").value;
             const maxLinks = allLinks.length;
-            const numActiveLinks = Math.max(numNodes - 1, Math.floor((density / 100) * maxLinks));
+            const numActiveLinks = Math.max(numNodes - 1, Math.floor((currentDensity / 100) * maxLinks));
             const activeLinks = allLinks.slice(0, numActiveLinks).map(d => ({...d}));
 
             const links = linkGroup.selectAll("line").data(activeLinks);
@@ -110,8 +123,7 @@
         }
 
         function pulse() {
-            const synchrony = document.getElementById("synchronySlider").value;
-            const maxDelay = 1500 - (synchrony * 15); 
+            const maxDelay = 1500 - (currentSync * 15); 
             
             nodeGroup.selectAll("circle")
                 .transition()
@@ -124,7 +136,6 @@
                 .on("end", pulse);
         }
 
-        document.getElementById("densitySlider").addEventListener("input", updateGraph);
         updateGraph();
         pulse();
     </script>
