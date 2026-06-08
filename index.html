@@ -19,10 +19,10 @@
         label { font-weight: bold; margin-bottom: 4px; color: #333; font-size: 14px; }
         
         .btn-row { display: flex; align-items: center; gap: 10px; }
-        .hotkey-label { font-size: 11px; color: #666; font-weight: normal; }
         button { 
             background: #0078D4; color: white; border: none; border-radius: 4px; 
-            width: 50px; height: 35px; font-size: 18px; font-weight: bold; cursor: pointer;
+            width: 45px; height: 35px; font-size: 24px; font-weight: bold; cursor: pointer;
+            line-height: 1; display: flex; justify-content: center; align-items: center;
         }
         button:active { background: #005A9E; }
         .val-display { font-size: 14px; font-weight: bold; width: 40px; text-align: center; }
@@ -36,19 +36,19 @@
 <body>
     <div id="controls">
         <div class="control-group">
-            <label>Global Density <span class="hotkey-label">(Keys 1 & 2)</span></label>
+            <label>Global Density</label>
             <div class="btn-row">
-                <button onpointerdown="changeDensity(-20, event)">- [1]</button>
+                <button onpointerdown="changeDensity(-20, event)">-</button>
                 <span class="val-display" id="densityVal">50%</span>
-                <button onpointerdown="changeDensity(20, event)">+ [2]</button>
+                <button onpointerdown="changeDensity(20, event)">+</button>
             </div>
         </div>
         <div class="control-group">
-            <label>Global Synchrony <span class="hotkey-label">(Keys 3 & 4)</span></label>
+            <label>Global Synchrony</label>
             <div class="btn-row">
-                <button onpointerdown="changeSync(-20, event)">- [3]</button>
+                <button onpointerdown="changeSync(-20, event)">-</button>
                 <span class="val-display" id="syncVal">50%</span>
-                <button onpointerdown="changeSync(20, event)">+ [4]</button>
+                <button onpointerdown="changeSync(20, event)">+</button>
             </div>
         </div>
     </div>
@@ -121,6 +121,7 @@
             document.getElementById("syncVal").innerText = currentSync + "%";
         };
 
+        // Keyboard listeners are kept strictly for off-screen control during your screen recording
         document.addEventListener('keydown', function(event) {
             if (event.key === '1') changeDensity(-20, null);
             if (event.key === '2') changeDensity(20, null);
@@ -134,32 +135,4 @@
             const activeLinks = allLinks.slice(0, numActiveLinks);
 
             const links = linkGroup.selectAll("line").data(activeLinks);
-            links.exit().remove();
-            
-            links.enter().append("line").attr("class", "link")
-                .merge(links)
-                .attr("x1", d => d.sourceNode.x)
-                .attr("y1", d => d.sourceNode.y)
-                .attr("x2", d => d.targetNode.x)
-                .attr("y2", d => d.targetNode.y);
-        }
-
-        // Pulse animation remains the same, scaled down slightly
-        function pulse() {
-            const maxDelay = 1500 - (currentSync * 15); 
-            nodeGroup.selectAll("circle")
-                .transition()
-                .delay(d => Math.random() * maxDelay)
-                .duration(600)
-                .attr("r", 8) // Scaled down pulse max from 10 to 8
-                .transition()
-                .duration(600)
-                .attr("r", 5) // Return to base radius
-                .on("end", pulse);
-        }
-
-        updateGraph();
-        pulse();
-    </script>
-</body>
-</html>
+            links.
