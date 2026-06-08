@@ -14,17 +14,16 @@
         #controls { 
             display: flex; flex-direction: column; gap: 6px; background: #f8f9fa; 
             padding: 5px; border-radius: 4px; width: 90%; box-shadow: 0 1px 2px rgba(0,0,0,0.1); z-index: 10;
-            transform: translateX(-50%); /* Shifts left by 1/2 its width */
         }
         .control-group { display: flex; flex-direction: column; align-items: center; }
         
-        /* Restored Label Size */
+        /* Scaled Label Size */
         label { font-weight: bold; margin-bottom: 1px; color: #333; font-size: 11px; }
         
-        /* Restored Button and Text Spacing */
+        /* Scaled Button and Text Spacing */
         .btn-row { display: flex; align-items: center; gap: 4px; }
         
-        /* Restored + and - Buttons */
+        /* Scaled + and - Buttons */
         button { 
             background: #0078D4; color: white; border: none; border-radius: 3px; 
             width: 14px; height: 11px; font-size: 8px; font-weight: bold; cursor: pointer;
@@ -32,14 +31,11 @@
         }
         button:active { background: #005A9E; }
         
-        /* Restored Text Size */
+        /* Scaled 50% Text Size */
         .val-display { font-size: 6px; font-weight: bold; width: 16px; text-align: center; }
         
-        /* Restored SVG size */
-        svg { 
-            background: #fafafa; border-radius: 4px; margin-top: 4px; width: 160px; height: 140px; 
-            transform: translateX(-50%); /* Shifts left by 1/2 its width */
-        }
+        /* Scaled SVG size */
+        svg { background: #fafafa; border-radius: 4px; margin-top: 4px; width: 160px; height: 140px; }
         .node { fill: #0078D4; stroke: #fff; stroke-width: 1px; }
         .link { stroke: #aaa; stroke-opacity: 0.5; stroke-width: 0.5px; }
     </style>
@@ -94,7 +90,7 @@
         const layoutLinksCount = Math.floor(0.40 * allLinks.length);
         const layoutLinks = allLinks.slice(0, Math.max(numNodes - 1, layoutLinksCount));
 
-        // Restored physics forces for the 160x140 boundary
+        // Scaled up physics forces to maintain layout proportions in the larger boundary
         const simulation = d3.forceSimulation(nodes)
             .force("charge", d3.forceManyBody().strength(-20)) 
             .force("center", d3.forceCenter(width / 2, height / 2))
@@ -160,10 +156,10 @@
                 .transition()
                 .delay(d => Math.random() * maxDelay)
                 .duration(600)
-                .attr("r", 5) // Restored pulse size
+                .attr("r", 5) // Scaled pulse size
                 .transition()
                 .duration(600)
-                .attr("r", 3) // Restored base size
+                .attr("r", 3) // Scaled base size
                 .on("end", pulse);
         }
 
