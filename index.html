@@ -35,7 +35,7 @@
         .val-display { font-size: 18px; font-weight: bold; width: 44px; text-align: center; }
         
         /* Graph SVG x2 */
-        svg { background: #fafafa; border-radius: 4px; margin-top: 1px; width: 320px; height: 280px; }
+        svg { background: #fafafa; border-radius: 4px; margin-top: -4px; width: 320px; height: 280px; }
         .node { fill: #0078D4; stroke: #fff; stroke-width: 2px; }
         .link { stroke: #aaa; stroke-opacity: 0.5; stroke-width: 1px; }
     </style>
@@ -97,7 +97,7 @@
         // Physics forces scaled up to match the x2 container
         const simulation = d3.forceSimulation(nodes)
             .force("charge", d3.forceManyBody().strength(-60))
-            .force("center", d3.forceCenter(width / 2, height / 2))
+            .force("center", d3.forceCenter(width / 2, height / 2)-15)
             .force("collide", d3.forceCollide().radius(10))
             .force("link", d3.forceLink(layoutLinks).distance(30)); 
 
