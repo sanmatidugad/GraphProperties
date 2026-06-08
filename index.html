@@ -14,6 +14,7 @@
         #controls { 
             display: flex; flex-direction: column; gap: 6px; background: #f8f9fa; 
             padding: 5px; border-radius: 4px; width: 90%; box-shadow: 0 1px 2px rgba(0,0,0,0.1); z-index: 10;
+            transform: translateX(-20px); /* Shifted slightly left */
         }
         .control-group { display: flex; flex-direction: column; align-items: center; }
         
@@ -35,7 +36,10 @@
         .val-display { font-size: 6px; font-weight: bold; width: 16px; text-align: center; }
         
         /* Scaled SVG size */
-        svg { background: #fafafa; border-radius: 4px; margin-top: 4px; width: 160px; height: 140px; }
+        svg { 
+            background: #fafafa; border-radius: 4px; margin-top: 4px; width: 160px; height: 140px; 
+            transform: translateX(-20px); /* Shifted slightly left */
+        }
         .node { fill: #0078D4; stroke: #fff; stroke-width: 1px; }
         .link { stroke: #aaa; stroke-opacity: 0.5; stroke-width: 0.5px; }
     </style>
