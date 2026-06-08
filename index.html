@@ -8,36 +8,36 @@
     <style>
         body { 
             font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; 
-            align-items: center; background: #fff; margin: 0; padding: 1px; overflow: hidden; 
+            align-items: center; background: #fff; margin: 0; padding: 0.5px; overflow: hidden; 
             user-select: none;
         }
         #controls { 
-            display: flex; flex-direction: column; gap: 6px; background: #f8f9fa; 
-            padding: 5px; border-radius: 4px; width: 90%; box-shadow: 0 1px 2px rgba(0,0,0,0.1); z-index: 10;
+            display: flex; flex-direction: column; gap: 3px; background: #f8f9fa; 
+            padding: 2.5px; border-radius: 2px; width: 90%; box-shadow: 0 0.5px 1px rgba(0,0,0,0.1); z-index: 10;
         }
         .control-group { display: flex; flex-direction: column; align-items: center; }
         
         /* Reduced Label Size */
-        label { font-weight: bold; margin-bottom: 1px; color: #333; font-size: 11px; }
+        label { font-weight: bold; margin-bottom: 0.5px; color: #333; font-size: 5.5px; }
         
         /* Reduced Button and Text Spacing */
-        .btn-row { display: flex; align-items: center; gap: 4px; }
+        .btn-row { display: flex; align-items: center; gap: 2px; }
         
         /* Shrunk the + and - Buttons */
         button { 
-            background: #0078D4; color: white; border: none; border-radius: 3px; 
-            width: 14px; height: 11px; font-size: 8px; font-weight: bold; cursor: pointer;
+            background: #0078D4; color: white; border: none; border-radius: 1.5px; 
+            width: 7px; height: 5.5px; font-size: 4px; font-weight: bold; cursor: pointer;
             line-height: 1; display: flex; justify-content: center; align-items: center;
         }
         button:active { background: #005A9E; }
         
         /* Reduced the 50% Text Size */
-        .val-display { font-size: 6px; font-weight: bold; width: 16px; text-align: center; }
+        .val-display { font-size: 3px; font-weight: bold; width: 8px; text-align: center; }
         
         /* Scaled down SVG size */
-        svg { background: #fafafa; border-radius: 4px; margin-top: 4px; width: 160px; height: 140px; }
-        .node { fill: #0078D4; stroke: #fff; stroke-width: 1px; }
-        .link { stroke: #aaa; stroke-opacity: 0.5; stroke-width: 0.5px; }
+        svg { background: #fafafa; border-radius: 2px; margin-top: 2px; width: 80px; height: 70px; }
+        .node { fill: #0078D4; stroke: #fff; stroke-width: 0.5px; }
+        .link { stroke: #aaa; stroke-opacity: 0.5; stroke-width: 0.25px; }
     </style>
 </head>
 <body>
@@ -59,18 +59,18 @@
             </div>
         </div>
     </div>
-    <svg viewBox="0 0 160 140"></svg>
+    <svg viewBox="0 0 80 70"></svg>
 
     <script>
         // Scaled down canvas
-        const width = 160, height = 140, numNodes = 30;
+        const width = 80, height = 70, numNodes = 30;
         const svg = d3.select("svg");
         
         let currentDensity = 50;
         let currentSync = 50;
 
         // Scaled down radius for tiny box
-        const nodes = Array.from({length: numNodes}, (_, i) => ({ id: i, radius: 3 }));
+        const nodes = Array.from({length: numNodes}, (_, i) => ({ id: i, radius: 1.5 }));
         
         // 1. GENERATE LINKS SAFELY
         let allLinks = [];
@@ -90,12 +90,12 @@
         const layoutLinksCount = Math.floor(0.40 * allLinks.length);
         const layoutLinks = allLinks.slice(0, Math.max(numNodes - 1, layoutLinksCount));
 
-        // Scaled down physics forces for the 160x140 boundary
+        // Scaled down physics forces for the 80x70 boundary
         const simulation = d3.forceSimulation(nodes)
-            .force("charge", d3.forceManyBody().strength(-20)) 
+            .force("charge", d3.forceManyBody().strength(-10)) 
             .force("center", d3.forceCenter(width / 2, height / 2))
-            .force("collide", d3.forceCollide().radius(6))
-            .force("link", d3.forceLink(layoutLinks).distance(15)); 
+            .force("collide", d3.forceCollide().radius(3))
+            .force("link", d3.forceLink(layoutLinks).distance(7.5)); 
 
         // Lock coordinates
         simulation.stop();
@@ -156,10 +156,10 @@
                 .transition()
                 .delay(d => Math.random() * maxDelay)
                 .duration(600)
-                .attr("r", 5) // Miniature pulse size
+                .attr("r", 2.5) // Miniature pulse size
                 .transition()
                 .duration(600)
-                .attr("r", 3) // Miniature base size
+                .attr("r", 1.5) // Miniature base size
                 .on("end", pulse);
         }
 
