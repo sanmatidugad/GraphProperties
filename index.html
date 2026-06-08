@@ -3,45 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Static Layout Brain Network</title>
+    <title>Bulletproof Brain Network - Scaled</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         body { 
             font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; 
-            align-items: center; background: #fff; margin: 0; padding: 1px; overflow: hidden; 
+            align-items: center; background: #fff; margin: 0; padding: 10px; overflow: hidden; 
             user-select: none;
         }
         #controls { 
-            display: flex; flex-direction: column; gap: 6px; background: #f8f9fa; 
-            padding: 5px; border-radius: 4px; width: 90%; box-shadow: 0 1px 2px rgba(0,0,0,0.1); z-index: 10;
-            transform: translateX(-40px); /* Shifted slightly left */
+            display: flex; flex-direction: column; gap: 8px; background: #f8f9fa; 
+            padding: 12px; border-radius: 8px; width: 320px; box-sizing: border-box; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 10;
         }
         .control-group { display: flex; flex-direction: column; align-items: center; }
         
-        /* Scaled Label Size */
-        label { font-weight: bold; margin-bottom: 1px; color: #333; font-size: 11px; }
+        /* Font size x1.5 */
+        label { font-weight: bold; margin-bottom: 4px; color: #333; font-size: 15px; }
         
-        /* Scaled Button and Text Spacing */
-        .btn-row { display: flex; align-items: center; gap: 4px; }
+        .btn-row { display: flex; align-items: center; gap: 12px; }
         
-        /* Scaled + and - Buttons */
+        /* Buttons x2 */
         button { 
-            background: #0078D4; color: white; border: none; border-radius: 3px; 
-            width: 14px; height: 11px; font-size: 8px; font-weight: bold; cursor: pointer;
-            line-height: 1; display: flex; justify-content: center; align-items: center;
+            background: #0078D4; color: white; border: none; border-radius: 6px; 
+            width: 40px; height: 32px; font-size: 24px; font-weight: bold; cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
         }
         button:active { background: #005A9E; }
         
-        /* Scaled 50% Text Size */
-        .val-display { font-size: 6px; font-weight: bold; width: 16px; text-align: center; }
+        /* Percent Text x2 */
+        .val-display { font-size: 20px; font-weight: bold; width: 48px; text-align: center; }
         
-        /* Scaled SVG size */
-        svg { 
-            background: #fafafa; border-radius: 4px; margin-top: 4px; width: 160px; height: 140px; 
-            transform: translateX(-40px); /* Shifted slightly left */
-        }
-        .node { fill: #0078D4; stroke: #fff; stroke-width: 1px; }
-        .link { stroke: #aaa; stroke-opacity: 0.5; stroke-width: 0.5px; }
+        /* Graph SVG x2 */
+        svg { background: #fafafa; border-radius: 8px; margin-top: 12px; width: 320px; height: 280px; }
+        .node { fill: #0078D4; stroke: #fff; stroke-width: 2px; }
+        .link { stroke: #aaa; stroke-opacity: 0.5; stroke-width: 1px; }
     </style>
 </head>
 <body>
@@ -49,65 +45,67 @@
         <div class="control-group">
             <label>Global Density</label>
             <div class="btn-row">
-                <button onpointerdown="changeDensity(-40, event)">-</button>
+                <button id="den-down">-</button>
                 <span class="val-display" id="densityVal">50%</span>
-                <button onpointerdown="changeDensity(20, event)">+</button>
+                <button id="den-up">+</button>
             </div>
         </div>
         <div class="control-group">
             <label>Global Synchrony</label>
             <div class="btn-row">
-                <button onpointerdown="changeSync(-40, event)">-</button>
+                <button id="sync-down">-</button>
                 <span class="val-display" id="syncVal">50%</span>
-                <button onpointerdown="changeSync(20, event)">+</button>
+                <button id="sync-up">+</button>
             </div>
         </div>
     </div>
-    <svg viewBox="0 0 160 140"></svg>
+    <svg viewBox="0 0 320 280"></svg>
 
     <script>
-        // Scaled up canvas
-        const width = 160, height = 140, numNodes = 30;
+        const width = 320, height = 280, numNodes = 30; // Graph size doubled
         const svg = d3.select("svg");
         
         let currentDensity = 50;
         let currentSync = 50;
 
-        // Scaled up radius
-        const nodes = Array.from({length: numNodes}, (_, i) => ({ id: i, radius: 3 }));
+        const nodes = Array.from({length: numNodes}, (_, i) => ({ id: i, radius: 6 })); // Radius doubled
         
-        // 1. GENERATE LINKS SAFELY
+        // 1. GENERATE LINKS
         let allLinks = [];
         for (let i = 0; i < numNodes; i++) {
             for (let j = i + 1; j < numNodes; j++) {
-                let weight = (j === i + 1) ? 100 : Math.random() * 100;
                 allLinks.push({ 
-                    source: nodes[i], 
-                    target: nodes[j], 
-                    weight: weight 
+                    source: i, 
+                    target: j, 
+                    weight: (j === i + 1) ? 100 : Math.random() * 100 
                 });
             }
         }
         allLinks.sort((a, b) => b.weight - a.weight);
 
-        // 2. PRE-CALCULATE STATIC LAYOUT BASED ON 40% DENSITY
+        // 2. MANUALLY ASSIGN NODE REFERENCES
+        allLinks.forEach(link => {
+            link.sourceNode = nodes[link.source];
+            link.targetNode = nodes[link.target];
+        });
+
+        // 3. PRE-CALCULATE STATIC LAYOUT BASED ON 40% DENSITY
         const layoutLinksCount = Math.floor(0.40 * allLinks.length);
-        const layoutLinks = allLinks.slice(0, Math.max(numNodes - 1, layoutLinksCount));
+        const layoutLinks = allLinks.slice(0, Math.max(numNodes - 1, layoutLinksCount))
+                                    .map(d => ({ source: d.source, target: d.target }));
 
-        // Scaled up physics forces to maintain layout proportions in the larger boundary
+        // Physics forces scaled up to match the x2 container
         const simulation = d3.forceSimulation(nodes)
-            .force("charge", d3.forceManyBody().strength(-40)) 
+            .force("charge", d3.forceManyBody().strength(-60))
             .force("center", d3.forceCenter(width / 2, height / 2))
-            .force("collide", d3.forceCollide().radius(6))
-            .force("link", d3.forceLink(layoutLinks).distance(15)); 
+            .force("collide", d3.forceCollide().radius(10))
+            .force("link", d3.forceLink(layoutLinks).distance(30)); 
 
-        // Lock coordinates
+        // Fast-forward physics and lock them permanently
         simulation.stop();
-        for (let i = 0; i < 300; ++i) {
-            simulation.tick();
-        }
+        for (let i = 0; i < 300; ++i) simulation.tick();
 
-        // 3. DRAW GRAPH ELEMENTS
+        // 4. DRAW GRAPH ELEMENTS
         let linkGroup = svg.append("g").attr("class", "links");
         let nodeGroup = svg.append("g").attr("class", "nodes");
 
@@ -119,27 +117,6 @@
             .attr("cx", d => d.x)
             .attr("cy", d => d.y);
 
-        // 4. INTERACTION LOGIC
-        window.changeDensity = function(amount, event) {
-            if(event) { event.preventDefault(); event.stopPropagation(); }
-            currentDensity = Math.max(0, Math.min(100, currentDensity + amount));
-            document.getElementById("densityVal").innerText = currentDensity + "%";
-            updateGraph();
-        };
-
-        window.changeSync = function(amount, event) {
-            if(event) { event.preventDefault(); event.stopPropagation(); }
-            currentSync = Math.max(0, Math.min(100, currentSync + amount));
-            document.getElementById("syncVal").innerText = currentSync + "%";
-        };
-
-        document.addEventListener('keydown', function(event) {
-            if (event.key === '1') changeDensity(-40, null);
-            if (event.key === '2') changeDensity(20, null);
-            if (event.key === '3') changeSync(-40, null);
-            if (event.key === '4') changeSync(20, null);
-        });
-
         function updateGraph() {
             const numActiveLinks = Math.max(numNodes - 1, Math.floor((currentDensity / 100) * allLinks.length));
             const activeLinks = allLinks.slice(0, numActiveLinks);
@@ -148,10 +125,10 @@
                 .data(activeLinks)
                 .join("line")
                 .attr("class", "link")
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y);
+                .attr("x1", d => d.sourceNode.x)
+                .attr("y1", d => d.sourceNode.y)
+                .attr("x2", d => d.targetNode.x)
+                .attr("y2", d => d.targetNode.y);
         }
 
         function pulse() {
@@ -160,12 +137,54 @@
                 .transition()
                 .delay(d => Math.random() * maxDelay)
                 .duration(600)
-                .attr("r", 5) // Scaled pulse size
+                .attr("r", 8) // Max pulse doubled
                 .transition()
                 .duration(600)
-                .attr("r", 3) // Scaled base size
+                .attr("r", 6) // Base pulse doubled
                 .on("end", pulse);
         }
+
+        // 5. BULLETPROOF BUTTON LISTENERS
+        function setupButton(id, callback) {
+            const btn = document.getElementById(id);
+            ['mousedown', 'touchstart', 'click'].forEach(evt => {
+                btn.addEventListener(evt, e => {
+                    e.preventDefault(); 
+                    e.stopPropagation();
+                    callback();
+                });
+            });
+        }
+
+        setupButton('den-down', () => {
+            currentDensity = Math.max(0, currentDensity - 20);
+            document.getElementById("densityVal").innerText = currentDensity + "%";
+            updateGraph();
+        });
+        
+        setupButton('den-up', () => {
+            currentDensity = Math.min(100, currentDensity + 20);
+            document.getElementById("densityVal").innerText = currentDensity + "%";
+            updateGraph();
+        });
+
+        setupButton('sync-down', () => {
+            currentSync = Math.max(0, currentSync - 20);
+            document.getElementById("syncVal").innerText = currentSync + "%";
+        });
+
+        setupButton('sync-up', () => {
+            currentSync = Math.min(100, currentSync + 20);
+            document.getElementById("syncVal").innerText = currentSync + "%";
+        });
+
+        // Backup Keyboard listeners (1,2,3,4) for smooth screen recording
+        document.addEventListener('keydown', e => {
+            if (e.key === '1') { currentDensity = Math.max(0, currentDensity - 20); document.getElementById("densityVal").innerText = currentDensity + "%"; updateGraph(); }
+            if (e.key === '2') { currentDensity = Math.min(100, currentDensity + 20); document.getElementById("densityVal").innerText = currentDensity + "%"; updateGraph(); }
+            if (e.key === '3') { currentSync = Math.max(0, currentSync - 20); document.getElementById("syncVal").innerText = currentSync + "%"; }
+            if (e.key === '4') { currentSync = Math.min(100, currentSync + 20); document.getElementById("syncVal").innerText = currentSync + "%"; }
+        });
 
         updateGraph();
         pulse();
